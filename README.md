@@ -8,13 +8,13 @@ but uses it's own dynamic style element to change the width of the elements.
 
 Weight: ~4kb (uncompressed)
 
-###[View Demo Page](http://cdpn.io/kLjDK)
+##[View Demo Page](http://cdpn.io/kLjDK)
 
-###[Blog post](http://dropthebit.com/757/)
+##[Blog post](http://dropthebit.com/757/)
 
 ## How to use:
     $('ul').simpleGrid({
-        margin      : .5,
-        initialSize : 250,
-        minSize     : 150
+        margin      : .5,  // spacing between grids (only for calculations. set this in CSS as well)
+        initialSize : 250, // aim for this size (per item)
+        minSize     : 150  // minimum item size
     });
