@@ -8,9 +8,9 @@ but uses it's own dynamic style element to change the width of the elements.
 
 Weight: ~4kb (uncompressed)
 
-##[View Demo Page](http://cdpn.io/kLjDK)
+###[View Demo Page](http://cdpn.io/kLjDK)
 
-##[Blog post](http://dropthebit.com/757/)
+###[Blog post](http://dropthebit.com/757/)
 
 ## How to use:
     $('ul').simpleGrid({
