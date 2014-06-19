@@ -82,9 +82,16 @@
         if( !forceUpdate && this.itemsPerRow == ((rowWidth / O.initialSize)|0) )
             return;
 
+        // calculate how many items CAN fit a row
         this.itemsPerRow = (rowWidth / O.initialSize)|0;
 
-        if( O.fullRows ){
+        // when there aren't enough items to fill a row:
+        if( this.itemsPerRow > itemsCount ){
+            this.itemsPerRow = itemsCount;
+            // this.updateRule(); // remove the styling
+            // return;
+        }
+        else if( O.fullRows ){
             this.$el.find('.hidden').removeClass('hidden'); // cleanup
 
             var howManyTohide = itemsCount % this.itemsPerRow,
@@ -98,18 +105,11 @@
             }
         }
 
-        // when there aren't enough items to fill a row:
-        if( this.itemsPerRow > itemsCount ){
-            this.itemsPerRow = itemsCount;
-            // this.updateRule(); // remove the styling
-            // return;
-        }
-
         itemSize = (100 - O.margin*(this.itemsPerRow-1)) / this.itemsPerRow; // in '%'
 
         // check if new size is less than the minimum allowed
-        // if so, show less item's per-row
-        if( this.el.children[0].clientWidth < O.minSize ){
+        // if so, show less item's per-row, so each item will be rendered bigger
+        if( this.el.children[0] && this.el.children[0].clientWidth < O.minSize ){
             if( this.itemsPerRow > 1 )
                 this.itemsPerRow--;
             else return;
@@ -125,6 +125,10 @@
             cssText = 'width:' + width + '%; margin-right:'+ margin+ '%; margin-bottom:'+ margin+ '%';
 
         rules[0].style.cssText = width ? cssText : '';
+
+        if( this.itemsPerRow < 2 )
+            return;
+
 
         if( sheet.cssRules ){
             sheet.deleteRule(1);
