@@ -1,6 +1,7 @@
 // By Yair Even-Or
 // dropthebit.com
 
+
 ;(function ($) {
     "use strict";
 
@@ -17,6 +18,10 @@
     }
 
     $.fn.simpleGrid = function(options){
+        // protection against calls without parameters
+        if( _.isEmpty(options) )
+            return;
+
         defaults.selector = this.selector;
 
         defaults.itemTagName = options.itemTag || $(this).find(':first-child')[0].tagName.toLowerCase();
@@ -52,7 +57,7 @@
 
     // Constructor
     function SimpleGrid(obj, options){
-        this.id          = new Array(8).join((Math.random().toString(36)+'00000000000000000').slice(2, 18)).slice(0, 7);
+        this.id          = new Array(8).join((Math.random().toString(36)+'00000000000000000').slice(2, 18)).slice(0, 7); // generate an UID for each instance
         this.$el         = obj;
         this.el          = obj[0];
         this.itemsPerRow = 0;
@@ -60,13 +65,16 @@
         this.selector    = this.options.selector + ' > '  + this.options.itemTagName;
         this.styleTag    = createStylesheet(this.selector);
 
-        $(window).on('resize.simpleGrid' + this.id, this.calc.bind(this) );
+        $(window).on('resize.simpleGrid' + this.id, _.throttle(this.calc.bind(this),100) );
         this.calc();
     }
 
     SimpleGrid.prototype.destroy = function(){
         $(window).off('resize.simpleGrid' + this.id);
-        this.styleTag.remove();
+
+        // if styleTag is in the DOM, remove it
+        if( this.styleTag.parentNode )
+            this.styleTag.parentNode.removeChild(this.styleTag);
     }
 
     SimpleGrid.prototype.calc = function(forceUpdate){
@@ -76,6 +84,7 @@
             O          = this.options,
             itemSize   = 0,
             rule;
+
 
         // THE MOST IMPORTANT THING:
         // Do not continue if number of items per row hasn't changed
@@ -109,7 +118,8 @@
 
         // check if new size is less than the minimum allowed
         // if so, show less item's per-row, so each item will be rendered bigger
-        if( this.el.children[0] && this.el.children[0].clientWidth < O.minSize ){
+        // IE10 - before img is loaded, it has min height and widht of 28, therefor checking "30"
+        if( this.el.children[0] && this.el.children[0].clientWidth > 30 && this.el.children[0].clientWidth < O.minSize  ){
             if( this.itemsPerRow > 1 )
                 this.itemsPerRow--;
             else return;
@@ -128,7 +138,6 @@
 
         if( this.itemsPerRow < 2 )
             return;
-
 
         if( sheet.cssRules ){
             sheet.deleteRule(1);
