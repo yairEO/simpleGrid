@@ -18,10 +18,6 @@
     }
 
     $.fn.simpleGrid = function(options){
-        // protection against calls without parameters
-        if( _.isEmpty(options) )
-            return;
-
         defaults.selector = this.selector;
 
         defaults.itemTagName = options.itemTag || $(this).find(':first-child')[0].tagName.toLowerCase();
@@ -138,6 +134,7 @@
 
         if( this.itemsPerRow < 2 )
             return;
+
 
         if( sheet.cssRules ){
             sheet.deleteRule(1);
