@@ -9,7 +9,8 @@
         margin      : 1,   // in percentage, divides across al items
         initialSize : 150, // aim for this size (in PX)
         minSize     : 100,
-        fullRows    : false // hide the last row if it doesn't have enough items to fill all of it
+        fullRows    : false, // hide the last row if it doesn't have enough items to fill all of it
+        itemTagName : 'li'
     };
 
     function createStylesheet(selector){
@@ -20,7 +21,11 @@
     $.fn.simpleGrid = function(options){
         defaults.selector = this.selector;
 
-        defaults.itemTagName = options.itemTag || $(this).find(':first-child')[0].tagName.toLowerCase();
+        // make sure
+        if( options.itemTag )
+            defaults.itemTagName = options.itemTag
+        else if( this.firstChild )
+            defaults.itemTagName = this.firstChild.tagName.toLowerCase();
 
         // instatiate a new 'Sticky' object per item that needs to be floated
         return this.each(function(){
