@@ -95,6 +95,9 @@
         // calculate how many items CAN fit a row
         this.itemsPerRow = (rowWidth / O.initialSize)|0;
 
+        if( this.itemsPerRow < 1 )
+            this.itemsPerRow = 1;
+
         // when there aren't enough items to fill a row:
         if( this.itemsPerRow > itemsCount ){
             this.itemsPerRow = itemsCount;
