@@ -6,7 +6,7 @@
     "use strict";
 
     var defaults = {
-        margin      : 1,   // in percentage, divides across al items
+        margin      : [1,1],   // in percentage, divides across al items
         initialSize : 150, // aim for this size (in PX)
         minSize     : 100,
         fullRows    : false, // hide the last row if it doesn't have enough items to fill all of it
@@ -14,25 +14,26 @@
     };
 
     function createStylesheet(selector){
-        var style = $('<style type="text/css" rel="simpleGridStyle">' + selector + '{}' + selector + ':nth-child(n){}</style>');
+        var style = $('<style type="text/css" rel="simpleGridStyle">' + selector + '{} ' + selector + ':nth-child(n){}</style>');
         return style.appendTo('head')[0];
     }
 
     $.fn.simpleGrid = function(options){
-        defaults.selector = this.selector;
-
-        // make sure
-        if( options.itemTag )
-            defaults.itemTagName = options.itemTag
-        else if( this.firstChild )
-            defaults.itemTagName = this.firstChild.tagName.toLowerCase();
-
-        // instatiate a new 'Sticky' object per item that needs to be floated
+        defaults.selector = this.selector || options.selector;
+        
+        // instantiate a new 'Sticky' object per item that needs to be floated
         return this.each(function(){
-            var $obj = $(this),
+            options = options || {};
+            
+            var $obj       = $(this),
+                settings   = $.extend({}, defaults, options),
                 simpleGrid = $obj.data('_simpleGrid');
 
-            options = options || {};
+            
+            if( options.margin && !(options.margin instanceof Array) )
+                settings.margin = [options.margin|0, options.margin|0];
+          
+          
             // if already bounded on the element
             if( simpleGrid ){
                 if( !$.isEmptyObject(options) ){ // update options
@@ -41,16 +42,17 @@
                     simpleGrid.calc(true);
                 }
                 else
-                  simpleGrid.calc();
+                    simpleGrid.calc();
 
                 return this;
             }
 
-            if( typeof options === 'object' )
-                options = $.extend({}, defaults, options);
+            // if "itemTagName" wasn't provided and the container has child elements, check & set their type (tag name)
+            if( !options.itemTagName && this.children[0] )
+                settings.itemTagName = this.children[0].tagName.toLowerCase();
 
-            // instanciate a new SimpleGrid
-            simpleGrid = new SimpleGrid($obj, options);
+            // instantiate a new SimpleGrid
+            simpleGrid = new SimpleGrid($obj, settings);
 
             $obj.data('_simpleGrid', simpleGrid);
         });
@@ -63,10 +65,10 @@
         this.el          = obj[0];
         this.itemsPerRow = 0;
         this.options     = options;
-        this.selector    = this.options.selector + ' > '  + this.options.itemTagName;
+        this.selector    = options.selector + ' > '  + this.options.itemTagName;
         this.styleTag    = createStylesheet(this.selector);
-
-        $(window).on('resize.simpleGrid' + this.id, _.throttle(this.calc.bind(this),100) );
+        
+        $(window).on('resize.simpleGrid' + this.id, this.calc.bind(this) ); // please throttle this call
         this.calc();
     }
 
@@ -79,13 +81,15 @@
     }
 
     SimpleGrid.prototype.calc = function(forceUpdate){
+        // do not update hidden containers
+        if( this.el.clientWidth == 0 )
+            return;
+
         var items      = this.el.children,
             itemsCount = items.length,
             rowWidth   = this.el.clientWidth,
             O          = this.options,
-            itemSize   = 0,
-            rule;
-
+            itemSize   = 0;
 
         // THE MOST IMPORTANT THING:
         // Do not continue if number of items per row hasn't changed
@@ -118,7 +122,7 @@
             }
         }
 
-        itemSize = (100 - O.margin*(this.itemsPerRow-1)) / this.itemsPerRow; // in '%'
+        itemSize = (100 - O.margin[0]*(this.itemsPerRow-1)) / this.itemsPerRow; // in '%'
 
         // check if new size is less than the minimum allowed
         // if so, show less item's per-row, so each item will be rendered bigger
@@ -136,7 +140,8 @@
         // the style sheet in the style tag
         var sheet = this.styleTag.sheet ? this.styleTag.sheet : this.styleTag.styleSheet,
             rules = sheet.cssRules ? sheet.cssRules : sheet.rules,
-            cssText = 'width:' + width + '%; margin-right:'+ margin+ '%; margin-bottom:'+ margin+ '%';
+            cssText = 'width:' + width + '%; margin-right:'+ margin[0] + '% !important; margin-bottom:'+ margin[1] + '% !important',
+			nthChildRule = this.selector + ':nth-child('+ this.itemsPerRow +'n){margin-right:0 !important}';
 
         rules[0].style.cssText = width ? cssText : '';
 
@@ -146,11 +151,11 @@
 
         if( sheet.cssRules ){
             sheet.deleteRule(1);
-            sheet.insertRule(this.selector + ':nth-child('+ this.itemsPerRow +'n){margin-right:0 !important}', 1);
+            sheet.insertRule(nthChildRule, 1);
         }
         else{
             sheet.removeRule(1);
-            sheet.addRule(this.selector + ':nth-child('+ this.itemsPerRow +'n)', 'margin-right:0 !important', 1);
+            sheet.addRule(nthChildRule, 1);
         }
     }
 
